@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>生徒の皆さまへ | Choose Music School</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=6">
+</head>
+<body>
+
+<header class="header">
+  <div class="wrap">
+    <a class="logo" href="index.html">Choose <span>Music</span> School</a>
+    <nav class="nav" id="nav">
+      <a href="index.html">トップ</a>
+      <a href="#news">お知らせ</a>
+      <a href="#rules">振替・キャンセル</a>
+      <a href="#payment">お支払い</a>
+      <a href="#events">イベント</a>
+    </nav>
+    <div class="header-right">
+    <a class="btn btn-line btn-sm" href="https://lin.ee/pqfaRtW" target="_blank" rel="noopener">LINEで連絡</a>
+    <button class="nav-toggle" id="navToggle" aria-label="メニュー">☰</button>
+    </div>
+  </div>
+</header>
+
+<main>
+<div class="page-head">
+  <div class="wrap">
+    <h1>生徒の皆さまへ</h1>
+    <p>在籍生徒さん・保護者の方向けのご案内ページです。</p>
+  </div>
+</div>
+
+<section id="news">
+  <div class="wrap">
+    <h2><span class="en">NEWS</span>お知らせ</h2>
+    <div style="max-width:760px;margin:0 auto">
+      <div class="notice"><time>2026.09.23</time>ホームページを公開しました。</div>
+      <div class="notice"><time>YYYY.MM.DD</time><span class="placeholder">お知らせの内容が入ります(休講日・イベント案内など)</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <div class="cards">
+      <div class="card" id="rules">
+        <h3>振替・キャンセルについて</h3>
+        <ul>
+          <li><span class="placeholder">前日◯時までのご連絡で振替可能</span></li>
+          <li><span class="placeholder">当日キャンセルの扱い(振替不可 / 1回のみ可 など)</span></li>
+          <li><span class="placeholder">振替の有効期限(翌月末まで など)</span></li>
+          <li>ご連絡はLINEまたはメールでお願いします。</li>
+        </ul>
+      </div>
+      <div class="card" id="payment">
+        <h3>レッスン料のお支払い</h3>
+        <ul>
+          <li>大人コース 60分 ¥7,000 / 子どもコース 30分 ¥4,000</li>
+          <li><span class="placeholder">お支払い方法(現金 / 銀行振込 / PayPay など)</span></li>
+          <li><span class="placeholder">お支払いのタイミング(当日 / 月初にまとめて など)</span></li>
+        </ul>
+      </div>
+      <div class="card" id="events">
+        <h3>発表会・イベント</h3>
+        <ul>
+          <li><span class="placeholder">発表会・セッションイベントの予定が入ります</span></li>
+          <li>決まり次第このページとLINEでお知らせします。</li>
+        </ul>
+      </div>
+      <div class="card" id="materials">
+        <h3>練習の参考に</h3>
+        <ul>
+          <li><a href="https://www.youtube.com/channel/UCG1T3BbGN_ZMDtW3s9hu6Nw" target="_blank" rel="noopener">YouTube「Choose Music」</a></li>
+          <li>毎回お渡しするカルテに、家での練習内容を書いています。分からないことはLINEでいつでもどうぞ。</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="wrap">
+    <h2><span class="en">CONTACT</span>ご連絡はこちら</h2>
+    <p>振替のご相談・ご質問はLINEまたはメールでお気軽にどうぞ。</p>
+    <div class="actions">
+      <a class="btn btn-outline" href="https://lin.ee/pqfaRtW" target="_blank" rel="noopener" style="background:#06c755;border-color:#06c755">LINEで連絡する</a>
+      <a class="btn btn-outline" href="mailto:choosemusic2021@gmail.com">メールで連絡する</a>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <div>
+      <a href="index.html">トップ</a>
+      <a href="index.html#price">レッスン・料金</a>
+      <a href="index.html#teacher">講師紹介</a>
+    </div>
+    <div class="copy">© Choose Music School</div>
+  </div>
+</footer>
+
+<a class="btn btn-line float-line" href="https://lin.ee/pqfaRtW" target="_blank" rel="noopener">LINEで連絡</a>
+<script>
+  const t = document.getElementById('navToggle'), n = document.getElementById('nav');
+  t.addEventListener('click', () => n.classList.toggle('open'));
+  n.querySelectorAll('a').forEach(a => a.addEventListener('click', () => n.classList.remove('open')));
+</script>
+</body>
+</html>

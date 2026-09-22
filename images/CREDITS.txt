@@ -1,0 +1,8 @@
+サイト内で使用しているフリー素材の出所(Unsplash License: 商用利用可・クレジット表記不要)
+
+hero.jpg    … Photo by Josh Sorenson on Unsplash
+              https://unsplash.com/photos/MjIMc6uhwrE
+teacher.jpg … Photo by Matthijs Smit on Unsplash
+              https://unsplash.com/photos/bRG2C0FAQEY
+
+※実際の教室・講師の写真が用意できたら、同じファイル名で上書きすれば差し替わります。
