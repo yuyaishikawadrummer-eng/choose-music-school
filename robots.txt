@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /students.html
+
+Sitemap: https://yuyaishikawadrummer-eng.github.io/choose-music-school/sitemap.xml
