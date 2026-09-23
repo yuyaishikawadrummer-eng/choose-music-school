@@ -29,7 +29,7 @@
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=6">
+<link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
 
@@ -43,6 +43,7 @@
       <a href="#teacher">講師紹介</a>
       <a href="#access">アクセス</a>
       <a href="#faq">よくある質問</a>
+      <a href="#apply">申込みフォーム</a>
       <a href="students.html">生徒の皆さまへ</a>
     </nav>
     <div class="header-right">
@@ -152,7 +153,7 @@
   <div class="wrap">
     <h2><span class="en">FLOW</span>体験レッスンまでの流れ</h2>
     <div class="steps">
-      <div class="step"><h3>LINEまたはメールで申込み</h3><p>ご希望の日時とお名前、ドラム経験の有無をお送りください。</p></div>
+      <div class="step"><h3>LINE・フォーム・メールで申込み</h3><p>ご希望の日時とお名前、ドラム経験の有無をお送りください。</p></div>
       <div class="step"><h3>日時を決定</h3><p>ご都合に合わせて日時を調整し、教室の詳しい場所をお伝えします。</p></div>
       <div class="step"><h3>体験レッスン</h3><p>手ぶらでOK。実際にドラムを叩きながら、目標やペースを相談します。</p></div>
       <div class="step"><h3>入会・レッスン開始</h3><p>入会時は体験料¥2,000を全額返金。無理な勧誘はしません。</p></div>
@@ -222,6 +223,58 @@
   </div>
 </section>
 
+<!-- 申込みフォーム -->
+<section id="apply">
+  <div class="wrap">
+    <h2><span class="en">APPLY</span>体験レッスン申込みフォーム</h2>
+    <p class="lead">下のフォームからもお申込みいただけます。送信後、1〜2日以内にメールで日時のご案内をお送りします。</p>
+    <form class="apply-form" id="applyForm" action="https://docs.google.com/forms/d/e/1FAIpQLScFIcnpiwyvXL0GdhoJYhP0kmtNx-HYlUX7y332G9YxX1qqDA/formResponse" method="POST" target="apply_iframe" novalidate>
+      <div class="field">
+        <label for="f-name">お名前 <span class="req">必須</span></label>
+        <input id="f-name" name="entry.1947370038" type="text" required autocomplete="name" placeholder="例: 山田 太郎">
+      </div>
+      <div class="field">
+        <label for="f-email">メールアドレス <span class="req">必須</span></label>
+        <input id="f-email" name="entry.1995445464" type="email" required autocomplete="email" placeholder="例: example@gmail.com">
+      </div>
+      <div class="field">
+        <label for="f-tel">電話番号 <span class="opt">任意</span></label>
+        <input id="f-tel" name="entry.1823922765" type="tel" autocomplete="tel" placeholder="例: 090-1234-5678">
+      </div>
+      <fieldset class="field">
+        <legend>ご希望のコース <span class="req">必須</span></legend>
+        <label class="radio"><input type="radio" name="entry.2046064487" value="大人コース(60分)" required> 大人コース(60分)</label>
+        <label class="radio"><input type="radio" name="entry.2046064487" value="子どもコース(30分・小学生以下)"> 子どもコース(30分・小学生以下)</label>
+        <label class="radio"><input type="radio" name="entry.2046064487" value="まだ決めていない"> まだ決めていない</label>
+      </fieldset>
+      <fieldset class="field">
+        <legend>ドラムのご経験 <span class="req">必須</span></legend>
+        <label class="radio"><input type="radio" name="entry.497837811" value="未経験" required> 未経験</label>
+        <label class="radio"><input type="radio" name="entry.497837811" value="少しある"> 少しある</label>
+        <label class="radio"><input type="radio" name="entry.497837811" value="経験者"> 経験者</label>
+      </fieldset>
+      <div class="field">
+        <label for="f-date">ご希望の日時 <span class="req">必須</span></label>
+        <textarea id="f-date" name="entry.985320623" rows="3" required placeholder="例: 第1希望 10/5(日) 14:00〜 / 第2希望 10/8(水) 19:00〜"></textarea>
+      </div>
+      <div class="field">
+        <label for="f-msg">ご質問・ご要望 <span class="opt">任意</span></label>
+        <textarea id="f-msg" name="entry.1231622308" rows="3" placeholder="例: 叩いてみたい曲、お子さまの年齢など"></textarea>
+      </div>
+      <div class="hp" aria-hidden="true"><label>このフィールドは空のままにしてください<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+      <p class="form-error" id="formError" hidden>未入力の必須項目があります。ご確認ください。</p>
+      <button type="submit" class="btn btn-orange" id="applySubmit">この内容で申し込む</button>
+      <p class="note" style="margin-top:14px">送信いただいた内容は体験レッスンのご案内にのみ使用します。</p>
+    </form>
+    <div class="apply-done" id="applyDone" hidden>
+      <div class="icon">✅</div>
+      <h3>お申込みありがとうございます</h3>
+      <p>内容を受け付けました。1〜2日以内にメールで日時のご案内をお送りします。<br>お急ぎの場合は <a href="https://lin.ee/pqfaRtW" target="_blank" rel="noopener">LINE</a> からもご連絡いただけます。</p>
+    </div>
+    <iframe name="apply_iframe" id="apply_iframe" style="display:none" title="送信処理用"></iframe>
+  </div>
+</section>
+
 <!-- CTA -->
 <section class="cta" id="contact">
   <div class="wrap">
@@ -229,6 +282,7 @@
     <p>体験レッスンは¥2,000(入会時に全額返金)。LINEからお気軽にご連絡ください。ご希望の日時・お名前・ドラム経験の有無をお送りいただければ、折り返しご案内します。</p>
     <div class="actions">
       <a class="btn btn-outline" href="https://lin.ee/pqfaRtW" target="_blank" rel="noopener" style="background:#06c755;border-color:#06c755">LINEで体験レッスンを申し込む</a>
+      <a class="btn btn-outline" href="#apply">フォームから申し込む</a>
       <a class="btn btn-outline" href="mailto:choosemusic2021@gmail.com?subject=%E4%BD%93%E9%A8%93%E3%83%AC%E3%83%83%E3%82%B9%E3%83%B3%E7%94%B3%E8%BE%BC%E3%81%BF">メールで申し込む</a>
     </div>
     <p class="mail">メール: <a href="mailto:choosemusic2021@gmail.com">choosemusic2021@gmail.com</a></p>
@@ -243,6 +297,7 @@
       <a href="#top">トップ</a>
       <a href="#price">レッスン・料金</a>
       <a href="#teacher">講師紹介</a>
+      <a href="#apply">申込みフォーム</a>
       <a href="students.html">生徒の皆さまへ</a>
       <a href="https://www.youtube.com/channel/UCG1T3BbGN_ZMDtW3s9hu6Nw" target="_blank" rel="noopener">YouTube</a>
     </div>
@@ -256,6 +311,29 @@
   const t = document.getElementById('navToggle'), n = document.getElementById('nav');
   t.addEventListener('click', () => n.classList.toggle('open'));
   n.querySelectorAll('a').forEach(a => a.addEventListener('click', () => n.classList.remove('open')));
+</script>
+<script>
+  (function(){
+    const form = document.getElementById('applyForm'), done = document.getElementById('applyDone'),
+          err = document.getElementById('formError'), btn = document.getElementById('applySubmit'),
+          iframe = document.getElementById('apply_iframe');
+    let submitted = false;
+    form.addEventListener('submit', function(e){
+      err.hidden = true;
+      if (form.querySelector('input[name="website"]').value) { e.preventDefault(); return; } // スパム対策
+      if (!form.checkValidity()) {
+        e.preventDefault(); err.hidden = false;
+        const first = form.querySelector(':invalid'); if (first) first.focus();
+        return;
+      }
+      submitted = true; btn.disabled = true; btn.textContent = '送信中…';
+    });
+    iframe.addEventListener('load', function(){
+      if (!submitted) return;
+      form.hidden = true; done.hidden = false;
+      done.scrollIntoView({behavior:'smooth', block:'center'});
+    });
+  })();
 </script>
 </body>
 </html>

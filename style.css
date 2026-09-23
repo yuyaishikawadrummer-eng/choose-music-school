@@ -230,3 +230,27 @@ section.alt { background: var(--cream); }
 @media (max-width: 480px) {
   .steps { grid-template-columns: 1fr; }
 }
+
+/* 申込みフォーム */
+.apply-form { max-width: 640px; margin: 0 auto; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 32px 28px; box-shadow: 0 6px 18px rgba(120,80,40,.06); }
+.apply-form .field { margin-bottom: 22px; border: 0; padding: 0; min-width: 0; }
+.apply-form label, .apply-form legend { display: block; font-weight: 700; margin-bottom: 8px; font-size: .95rem; }
+.apply-form .req, .apply-form .opt { display: inline-block; font-size: .7rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; margin-left: 6px; vertical-align: middle; }
+.apply-form .req { background: var(--orange); color: #fff; }
+.apply-form .opt { background: #eee; color: var(--ink-soft); }
+.apply-form input[type=text], .apply-form input[type=email], .apply-form input[type=tel], .apply-form textarea {
+  width: 100%; font: inherit; padding: 12px 14px; border: 1.5px solid #ddd2c6; border-radius: 10px; background: #fffdfa; color: var(--ink);
+}
+.apply-form input:focus, .apply-form textarea:focus { outline: none; border-color: var(--orange); box-shadow: 0 0 0 3px rgba(242,130,58,.18); }
+.apply-form textarea { resize: vertical; }
+.apply-form .radio { display: flex; align-items: center; gap: 10px; font-weight: 500; margin: 0 0 8px; padding: 10px 14px; border: 1.5px solid #ddd2c6; border-radius: 10px; cursor: pointer; background: #fffdfa; }
+.apply-form .radio:has(input:checked) { border-color: var(--orange); background: #fff3e8; }
+.apply-form .radio input { accent-color: var(--orange); width: 18px; height: 18px; margin: 0; }
+.apply-form .hp { position: absolute; left: -9999px; opacity: 0; height: 0; overflow: hidden; }
+.apply-form .form-error { color: #c62828; font-weight: 700; margin: 0 0 12px; }
+.apply-form .btn { width: 100%; }
+.apply-form .note { margin-bottom: 0; }
+.apply-done { max-width: 640px; margin: 0 auto; background: #fff; border: 2px solid var(--orange); border-radius: var(--radius); padding: 40px 28px; text-align: center; }
+.apply-done .icon { font-size: 2.6rem; }
+.apply-done h3 { font-size: 1.3rem; }
+.apply-done p { color: var(--ink-soft); margin: 0; }
