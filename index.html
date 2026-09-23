@@ -29,7 +29,7 @@
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=15">
+<link rel="stylesheet" href="style.css?v=16">
 </head>
 <body>
 
@@ -255,7 +255,7 @@
       </fieldset>
       <fieldset class="field dt-field">
         <legend>ご希望の日時 <span class="req">必須</span></legend>
-        <p class="hint" id="dtHint">カレンダーで日にちを選び、続けて時刻をタップしてください(9:00〜21:00)。</p>
+        <p class="hint" id="dtHint">カレンダーで日にちを選び、続けて時刻をタップしてください(10:00〜21:00・前々日まで受付)。</p>
         <p class="api-status" id="apiStatus" hidden></p>
         <div class="cal" id="cal">
           <div class="cal-head">
@@ -353,7 +353,7 @@
           pickedOne = document.getElementById('pickedOne'), pickedText = document.getElementById('pickedText');
     const WD = ['日','月','火','水','木','金','土'];
     const DUR = { '大人コース(60分)': 60, '子どもコース(30分・小学生以下)': 30, 'まだ決めていない': 60 };
-    let cfg = { open: 9, close: 21, step: 30, leadHours: 24, rangeDays: 90 };
+    let cfg = { open: 10, close: 21, step: 30, leadDays: 2, rangeDays: 90 };
     let busy = [], apiOk = false, submitted = false;
     const today = new Date(); today.setHours(0,0,0,0);
     let maxDay = new Date(today); maxDay.setDate(maxDay.getDate() + cfg.rangeDays);
@@ -374,7 +374,8 @@
       const closeAt = new Date(day); closeAt.setHours(cfg.close, 0, 0, 0);
       if (en > closeAt.getTime()) return false;
       if (!apiOk) return true; // API未接続時は「候補」として全て選べる
-      if (st < Date.now() + cfg.leadHours*3600000) return false;
+      const earliest = new Date(today); earliest.setDate(earliest.getDate() + cfg.leadDays);
+      if (st < earliest.getTime()) return false;
       return !busy.some(b => b[0] < en && st < b[1]);
     }
     function dayHasFree(day){ const dur = curDur(); return timesOfDay().some(t => isFree(day, t, dur)); }
@@ -434,7 +435,7 @@
         busy = j.busy || []; Object.assign(cfg, j.config || {}); if (j.config && j.config.durations) Object.assign(DUR, j.config.durations);
         maxDay = new Date(today); maxDay.setDate(maxDay.getDate() + cfg.rangeDays);
         apiOk = true; setStatus('', ''); document.getElementById('cal').classList.remove('is-loading'); renderCal(); renderSlots(); renderPicked();
-        document.getElementById('dtHint').textContent = '講師のカレンダーと連動した空き枠です。日にちを選び、開始時刻をタップしてください(前日まで受付・9:00〜21:00)。';
+        document.getElementById('dtHint').textContent = '講師のカレンダーと連動した空き枠です。日にちを選び、開始時刻をタップしてください(前々日まで受付・10:00〜21:00)。';
       }).catch(() => {
         apiOk = false; setStatus('空き状況を取得できませんでした。ご希望の日時を候補として送信いただければ、折り返し調整します。', 'warn'); document.getElementById('cal').classList.remove('is-loading'); renderCal(); renderSlots();
       });
@@ -470,8 +471,8 @@
             doneText.innerHTML = '<b>'+(j.when || whenText)+'</b> で仮予約を承りました。ご入力のメールアドレスに受付メールをお送りしています。<br>講師が確認のうえ、1〜2日以内に確定のご連絡をします。ご不明点は <a href="mailto:choosemusic2021@gmail.com">メール</a> でお気軽にどうぞ。';
             form.hidden = true; done.hidden = false; done.scrollIntoView({behavior:'smooth', block:'center'});
           } else {
-            const msg = { slot_taken: '申し訳ありません、その時間はたった今埋まってしまいました。別の時間をお選びください。', too_soon: '直前のお時間は受け付けできません。翌日以降をお選びください。',
-                          outside_hours: '受付時間外です。9:00〜21:00の間でお選びください。', bad_email: 'メールアドレスの形式をご確認ください。' }[j.error] || '送信に失敗しました。時間をおいて再度お試しいただくか、メールでご連絡ください。';
+            const msg = { slot_taken: '申し訳ありません、その時間はたった今埋まってしまいました。別の時間をお選びください。', too_soon: '当日・前日のご予約は受け付けできません。2日後以降の日をお選びください。',
+                          outside_hours: '受付時間外です。10:00〜21:00の間でお選びください。', bad_email: 'メールアドレスの形式をご確認ください。' }[j.error] || '送信に失敗しました。時間をおいて再度お試しいただくか、メールでご連絡ください。';
             err.textContent = msg; err.hidden = false; btn.disabled = false; btn.textContent = 'この内容で申し込む';
             if (j.error === 'slot_taken') { picked = null; renderPicked(); fetch(BOOKING_API_URL).then(r=>r.json()).then(k=>{ if(k.ok){ busy = k.busy||[]; renderCal(); renderSlots(); } }); }
           }
