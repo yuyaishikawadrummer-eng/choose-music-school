@@ -29,7 +29,7 @@
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=7">
+<link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
 
@@ -253,10 +253,22 @@
         <label class="radio"><input type="radio" name="entry.497837811" value="少しある"> 少しある</label>
         <label class="radio"><input type="radio" name="entry.497837811" value="経験者"> 経験者</label>
       </fieldset>
-      <div class="field">
-        <label for="f-date">ご希望の日時 <span class="req">必須</span></label>
-        <textarea id="f-date" name="entry.985320623" rows="3" required placeholder="例: 第1希望 10/5(日) 14:00〜 / 第2希望 10/8(水) 19:00〜"></textarea>
-      </div>
+      <fieldset class="field dt-field">
+        <legend>ご希望の日時 <span class="req">必須</span></legend>
+        <p class="hint">年中無休・9:00〜21:00。第2希望もあると日程が決まりやすくなります。</p>
+        <div class="dt-row">
+          <span class="dt-label">第1希望</span>
+          <input type="date" id="f-date1" aria-label="第1希望の日付" required>
+          <select id="f-time1" aria-label="第1希望の時刻" required><option value="">時刻</option></select>
+        </div>
+        <div class="dt-row">
+          <span class="dt-label">第2希望</span>
+          <input type="date" id="f-date2" aria-label="第2希望の日付">
+          <select id="f-time2" aria-label="第2希望の時刻"><option value="">時刻</option></select>
+        </div>
+        <input type="text" id="f-datenote" class="dt-note" placeholder="補足があれば(例: 平日の夜なら何曜日でも可)" aria-label="日時の補足">
+        <input type="hidden" name="entry.985320623" id="f-date">
+      </fieldset>
       <div class="field">
         <label for="f-msg">ご質問・ご要望 <span class="opt">任意</span></label>
         <textarea id="f-msg" name="entry.1231622308" rows="3" placeholder="例: 叩いてみたい曲、お子さまの年齢など"></textarea>
@@ -318,9 +330,31 @@
           err = document.getElementById('formError'), btn = document.getElementById('applySubmit'),
           iframe = document.getElementById('apply_iframe');
     let submitted = false;
+    // 日時ピッカーの準備
+    const d1 = document.getElementById('f-date1'), d2 = document.getElementById('f-date2'),
+          t1 = document.getElementById('f-time1'), t2 = document.getElementById('f-time2'),
+          dnote = document.getElementById('f-datenote'), dhidden = document.getElementById('f-date');
+    const today = new Date(); const pad = n => String(n).padStart(2,'0');
+    const iso = d => d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+    const maxD = new Date(today); maxD.setMonth(maxD.getMonth()+3);
+    [d1,d2].forEach(d => { d.min = iso(today); d.max = iso(maxD); });
+    for (let h = 9; h <= 20; h++) for (const m of ['00','30']) {
+      if (h === 20 && m === '30') break;
+      const v = h+':'+m;
+      [t1,t2].forEach(sel => { const o = document.createElement('option'); o.value = v; o.textContent = v+'〜'; sel.appendChild(o); });
+    }
+    const fmt = (dv, tv) => {
+      if (!dv || !tv) return '';
+      const d = new Date(dv+'T00:00:00'); const w = ['日','月','火','水','木','金','土'][d.getDay()];
+      return d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate()+'('+w+') '+tv+'〜';
+    };
     form.addEventListener('submit', function(e){
       err.hidden = true;
       if (form.querySelector('input[name="website"]').value) { e.preventDefault(); return; } // スパム対策
+      const parts = ['第1希望: '+fmt(d1.value, t1.value)];
+      if (d2.value && t2.value) parts.push('第2希望: '+fmt(d2.value, t2.value));
+      if (dnote.value.trim()) parts.push('補足: '+dnote.value.trim());
+      dhidden.value = parts.join(' / ');
       if (!form.checkValidity()) {
         e.preventDefault(); err.hidden = false;
         const first = form.querySelector(':invalid'); if (first) first.focus();
