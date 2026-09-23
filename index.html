@@ -29,7 +29,7 @@
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=13">
+<link rel="stylesheet" href="style.css?v=14">
 </head>
 <body>
 
@@ -279,6 +279,11 @@
   const t = document.getElementById('navToggle'), n = document.getElementById('nav');
   t.addEventListener('click', () => n.classList.toggle('open'));
   n.querySelectorAll('a').forEach(a => a.addEventListener('click', () => n.classList.remove('open')));
+  // 予約セクションが見えている間は、スマホの固定ボタンを隠す(予約画面に被らないように)
+  const fl = document.querySelector('.float-line'), ap = document.getElementById('apply');
+  if (fl && ap && 'IntersectionObserver' in window) {
+    new IntersectionObserver(es => es.forEach(e => fl.classList.toggle('is-hidden', e.isIntersecting)), { threshold: 0.05 }).observe(ap);
+  }
 </script>
 
 </body>

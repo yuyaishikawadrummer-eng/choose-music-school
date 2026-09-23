@@ -305,3 +305,4 @@ section.alt { background: var(--cream); }
 .booking-info ul { margin: 0; padding-left: 1.2em; color: var(--ink-soft); font-size: .95rem; }
 .booking-info li { margin-bottom: 4px; }
 @media (max-width: 720px) { .booking-frame iframe { height: 900px; } .booking-frame { margin: 0 -4px; border-radius: 12px; } }
+.float-line.is-hidden { opacity: 0; pointer-events: none; transition: opacity .2s; }
