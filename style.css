@@ -297,12 +297,4 @@ section.alt { background: var(--cream); }
 .cal.is-loading { position: relative; pointer-events: none; }
 .cal.is-loading .cal-grid, .cal.is-loading .cal-head, .cal.is-loading .cal-legend { opacity: .35; filter: grayscale(1); }
 .cal.is-loading::after { content: "空き状況を読み込み中…"; position: absolute; inset: 0; display: grid; place-items: center; font-weight: 700; color: var(--orange-dark); }
-/* Google予約ページ埋め込み */
-.booking-frame { max-width: 900px; margin: 0 auto; background: #fff; border: 2px solid var(--orange); border-radius: var(--radius); overflow: hidden; box-shadow: 0 10px 28px rgba(120,70,30,.12); }
-.booking-frame iframe { display: block; width: 100%; height: 760px; border: 0; }
-.booking-info { max-width: 760px; margin: 28px auto 0; background: var(--cream); border-radius: 12px; padding: 20px 24px; }
-.booking-info h3 { font-size: 1rem; margin-bottom: 8px; color: var(--orange-dark); }
-.booking-info ul { margin: 0; padding-left: 1.2em; color: var(--ink-soft); font-size: .95rem; }
-.booking-info li { margin-bottom: 4px; }
-@media (max-width: 720px) { .booking-frame iframe { height: 900px; } .booking-frame { margin: 0 -4px; border-radius: 12px; } }
 .float-line.is-hidden { opacity: 0; pointer-events: none; transition: opacity .2s; }
