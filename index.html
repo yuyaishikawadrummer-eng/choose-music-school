@@ -29,7 +29,7 @@
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=9">
+<link rel="stylesheet" href="style.css?v=10">
 </head>
 <body>
 
@@ -255,7 +255,8 @@
       </fieldset>
       <fieldset class="field dt-field">
         <legend>ご希望の日時 <span class="req">必須</span></legend>
-        <p class="hint">カレンダーで日にちを選び、続けて時刻を選ぶと候補に追加されます(最大3つ)。年中無休・9:00〜21:00。</p>
+        <p class="hint" id="dtHint">カレンダーで日にちを選び、続けて時刻をタップしてください。年中無休・9:00〜21:00。</p>
+        <p class="api-status" id="apiStatus" hidden></p>
         <div class="cal" id="cal">
           <div class="cal-head">
             <button type="button" class="cal-nav" id="calPrev" aria-label="前の月">‹</button>
@@ -264,14 +265,15 @@
           </div>
           <div class="cal-grid cal-week"><span class="sun">日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span class="sat">土</span></div>
           <div class="cal-grid" id="calDays" role="grid"></div>
+          <p class="cal-legend"><span class="lg lg-free"></span>空きあり <span class="lg lg-full"></span>空きなし・受付外</p>
         </div>
         <div class="slots" id="slots" hidden>
-          <p class="slots-title"><b id="slotsDate"></b> の希望時刻をタップ</p>
+          <p class="slots-title"><b id="slotsDate"></b> の開始時刻をタップ <span class="slots-dur" id="slotsDur"></span></p>
           <div class="slot-grid" id="slotGrid"></div>
         </div>
         <div class="picked" id="picked">
-          <p class="picked-empty" id="pickedEmpty">まだ候補が選ばれていません</p>
-          <ol class="picked-list" id="pickedList"></ol>
+          <p class="picked-empty" id="pickedEmpty">まだ日時が選ばれていません</p>
+          <div class="picked-one" id="pickedOne" hidden><span class="rank">選択中</span><span class="when" id="pickedText"></span><button type="button" class="rm" id="pickedClear" aria-label="選択を解除">×</button></div>
         </div>
         <input type="text" id="f-datenote" class="dt-note" placeholder="補足があれば(例: 平日の夜なら何曜日でも可)" aria-label="日時の補足">
         <input type="hidden" name="entry.985320623" id="f-date">
@@ -288,7 +290,7 @@
     <div class="apply-done" id="applyDone" hidden>
       <div class="icon">✅</div>
       <h3>お申込みありがとうございます</h3>
-      <p>内容を受け付けました。1〜2日以内にメールで日時のご案内をお送りします。<br>お急ぎの場合は <a href="https://lin.ee/pqfaRtW" target="_blank" rel="noopener">LINE</a> からもご連絡いただけます。</p>
+      <p id="doneText">内容を受け付けました。1〜2日以内にメールで日時のご案内をお送りします。<br>お急ぎの場合は <a href="https://lin.ee/pqfaRtW" target="_blank" rel="noopener">LINE</a> からもご連絡いただけます。</p>
     </div>
     <iframe name="apply_iframe" id="apply_iframe" style="display:none" title="送信処理用"></iframe>
   </div>
@@ -333,23 +335,45 @@
 </script>
 <script>
   (function(){
+    // ===== 予約API(Google Apps Script)。空欄のときは Googleフォームへの送信にフォールバック =====
+    const BOOKING_API_URL = '';
+
     const form = document.getElementById('applyForm'), done = document.getElementById('applyDone'),
           err = document.getElementById('formError'), btn = document.getElementById('applySubmit'),
-          iframe = document.getElementById('apply_iframe');
-    let submitted = false;
-    // カレンダー式の日時ピッカー
+          iframe = document.getElementById('apply_iframe'), doneText = document.getElementById('doneText'),
+          apiStatus = document.getElementById('apiStatus');
     const dnote = document.getElementById('f-datenote'), dhidden = document.getElementById('f-date');
     const calTitle = document.getElementById('calTitle'), calDays = document.getElementById('calDays'),
-          slots = document.getElementById('slots'), slotsDate = document.getElementById('slotsDate'), slotGrid = document.getElementById('slotGrid'),
-          pickedList = document.getElementById('pickedList'), pickedEmpty = document.getElementById('pickedEmpty');
+          slots = document.getElementById('slots'), slotsDate = document.getElementById('slotsDate'), slotsDur = document.getElementById('slotsDur'),
+          slotGrid = document.getElementById('slotGrid'), pickedEmpty = document.getElementById('pickedEmpty'),
+          pickedOne = document.getElementById('pickedOne'), pickedText = document.getElementById('pickedText');
     const WD = ['日','月','火','水','木','金','土'];
+    const DUR = { '大人コース(60分)': 60, '子どもコース(30分・小学生以下)': 30, 'まだ決めていない': 60 };
+    let cfg = { open: 9, close: 21, step: 30, leadHours: 24, rangeDays: 90 };
+    let busy = [], apiOk = false, submitted = false;
     const today = new Date(); today.setHours(0,0,0,0);
-    const maxDay = new Date(today); maxDay.setMonth(maxDay.getMonth() + 3);
+    let maxDay = new Date(today); maxDay.setDate(maxDay.getDate() + cfg.rangeDays);
     let view = new Date(today.getFullYear(), today.getMonth(), 1);
-    let selectedDay = null; const picked = [];
+    let selectedDay = null, picked = null; // picked = {day, time}
     const label = d => (d.getMonth()+1)+'/'+d.getDate()+'('+WD[d.getDay()]+')';
     const full  = d => d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate()+'('+WD[d.getDay()]+')';
     const sameDay = (a,b) => a && b && a.getTime() === b.getTime();
+    const pad = n => String(n).padStart(2,'0');
+    const curCourse = () => (form.querySelector('input[name="entry.2046064487"]:checked') || {}).value || '';
+    const curDur = () => DUR[curCourse()] || 60;
+    const endLabel = (time, dur) => { const [h,m] = time.split(':').map(Number); const t = h*60+m+dur; return Math.floor(t/60)+':'+pad(t%60); };
+
+    function slotStart(day, time){ const [h,m] = time.split(':').map(Number); const d = new Date(day); d.setHours(h, m, 0, 0); return d; }
+    function timesOfDay(){ const out = []; for (let h = cfg.open; h < cfg.close; h++) for (let m = 0; m < 60; m += cfg.step) out.push(h+':'+pad(m)); return out; }
+    function isFree(day, time, dur){
+      const st = slotStart(day, time).getTime(), en = st + dur*60000;
+      const closeAt = new Date(day); closeAt.setHours(cfg.close, 0, 0, 0);
+      if (en > closeAt.getTime()) return false;
+      if (!apiOk) return true; // API未接続時は「候補」として全て選べる
+      if (st < Date.now() + cfg.leadHours*3600000) return false;
+      return !busy.some(b => b[0] < en && st < b[1]);
+    }
+    function dayHasFree(day){ const dur = curDur(); return timesOfDay().some(t => isFree(day, t, dur)); }
 
     function renderCal(){
       calTitle.textContent = view.getFullYear()+'年 '+(view.getMonth()+1)+'月';
@@ -361,9 +385,10 @@
         const b = document.createElement('button'); b.type = 'button'; b.textContent = d; b.className = 'cal-day';
         if (day.getDay() === 0) b.classList.add('sun'); if (day.getDay() === 6) b.classList.add('sat');
         if (sameDay(day, today)) b.classList.add('today');
-        if (day < today || day > maxDay) { b.disabled = true; }
+        const out = day < today || day > maxDay;
+        if (out || !dayHasFree(day)) { b.disabled = true; if (!out && apiOk) b.classList.add('full'); }
         if (sameDay(day, selectedDay)) b.classList.add('selected');
-        if (picked.some(p => sameDay(p.day, day))) b.classList.add('has');
+        if (picked && sameDay(picked.day, day)) b.classList.add('has');
         b.addEventListener('click', () => { selectedDay = day; renderCal(); renderSlots(); });
         calDays.appendChild(b);
       }
@@ -372,59 +397,85 @@
     }
     function renderSlots(){
       if (!selectedDay) { slots.hidden = true; return; }
-      slots.hidden = false; slotsDate.textContent = label(selectedDay); slotGrid.innerHTML = '';
-      for (let h = 9; h <= 20; h++) for (const m of ['00','30']) {
-        if (h === 20 && m === '30') break;
-        const t = h+':'+m, b = document.createElement('button'); b.type = 'button'; b.className = 'slot'; b.textContent = t;
-        if (picked.some(p => sameDay(p.day, selectedDay) && p.time === t)) b.classList.add('on');
-        b.addEventListener('click', () => togglePick(selectedDay, t));
+      const dur = curDur();
+      slots.hidden = false; slotsDate.textContent = label(selectedDay); slotsDur.textContent = '(1回 '+dur+'分)'; slotGrid.innerHTML = '';
+      timesOfDay().forEach(t => {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'slot'; b.textContent = t;
+        if (!isFree(selectedDay, t, dur)) b.disabled = true;
+        if (picked && sameDay(picked.day, selectedDay) && picked.time === t) b.classList.add('on');
+        b.addEventListener('click', () => { picked = (picked && sameDay(picked.day, selectedDay) && picked.time === t) ? null : { day: selectedDay, time: t }; renderPicked(); renderCal(); renderSlots(); });
         slotGrid.appendChild(b);
-      }
+      });
       slots.scrollIntoView({behavior:'smooth', block:'nearest'});
     }
-    function togglePick(day, time){
-      const i = picked.findIndex(p => sameDay(p.day, day) && p.time === time);
-      if (i >= 0) picked.splice(i, 1);
-      else { if (picked.length >= 3) { alert('候補は3つまで選べます。不要な候補を × で削除してください。'); return; } picked.push({day, time}); }
-      renderPicked(); renderCal(); renderSlots();
-    }
     function renderPicked(){
-      pickedList.innerHTML = ''; pickedEmpty.hidden = picked.length > 0;
-      picked.forEach((p, i) => {
-        const li = document.createElement('li');
-        li.innerHTML = '<span class="rank">第'+(i+1)+'希望</span><span class="when">'+label(p.day)+' '+p.time+'〜</span>';
-        const x = document.createElement('button'); x.type = 'button'; x.className = 'rm'; x.setAttribute('aria-label','この候補を削除'); x.textContent = '×';
-        x.addEventListener('click', () => { picked.splice(i,1); renderPicked(); renderCal(); renderSlots(); });
-        li.appendChild(x); pickedList.appendChild(li);
-      });
+      pickedEmpty.hidden = !!picked; pickedOne.hidden = !picked;
+      if (picked) pickedText.textContent = label(picked.day)+' '+picked.time+'〜'+endLabel(picked.time, curDur());
     }
+    document.getElementById('pickedClear').addEventListener('click', () => { picked = null; renderPicked(); renderCal(); renderSlots(); });
     document.getElementById('calPrev').addEventListener('click', () => { view = new Date(view.getFullYear(), view.getMonth()-1, 1); renderCal(); });
     document.getElementById('calNext').addEventListener('click', () => { view = new Date(view.getFullYear(), view.getMonth()+1, 1); renderCal(); });
+    form.querySelectorAll('input[name="entry.2046064487"]').forEach(r => r.addEventListener('change', () => {
+      if (picked && !isFree(picked.day, picked.time, curDur())) { picked = null; alert('コースの長さが変わったため、選択していた時間が空きと重なります。日時を選び直してください。'); }
+      renderPicked(); renderCal(); renderSlots();
+    }));
     renderCal(); renderPicked();
 
+    // ---- 空き状況の取得
+    function setStatus(msg, kind){ apiStatus.hidden = !msg; apiStatus.textContent = msg || ''; apiStatus.className = 'api-status ' + (kind || ''); }
+    if (BOOKING_API_URL) {
+      setStatus('空き状況を読み込んでいます…', 'loading');
+      fetch(BOOKING_API_URL, { method: 'GET', redirect: 'follow' }).then(r => r.json()).then(j => {
+        if (!j.ok) throw new Error(j.error || 'ng');
+        busy = j.busy || []; Object.assign(cfg, j.config || {}); if (j.config && j.config.durations) Object.assign(DUR, j.config.durations);
+        maxDay = new Date(today); maxDay.setDate(maxDay.getDate() + cfg.rangeDays);
+        apiOk = true; setStatus('', ''); renderCal(); renderSlots(); renderPicked();
+        document.getElementById('dtHint').textContent = '講師のカレンダーと連動した空き枠です。日にちを選び、開始時刻をタップしてください(前日まで受付・9:00〜21:00)。';
+      }).catch(() => {
+        apiOk = false; setStatus('空き状況を取得できませんでした。ご希望の日時を候補として送信いただければ、折り返し調整します。', 'warn'); renderCal(); renderSlots();
+      });
+    }
+
+    // ---- 送信
     form.addEventListener('submit', function(e){
       err.hidden = true;
       if (form.querySelector('input[name="website"]').value) { e.preventDefault(); return; } // スパム対策
-      const parts = picked.map((p, i) => '第'+(i+1)+'希望: '+full(p.day)+' '+p.time+'〜');
-      if (dnote.value.trim()) parts.push('補足: '+dnote.value.trim());
-      dhidden.value = parts.join(' / ');
-      if (picked.length === 0) {
-        e.preventDefault(); err.textContent = 'ご希望の日時をカレンダーから1つ以上選んでください。'; err.hidden = false;
-        document.getElementById('cal').scrollIntoView({behavior:'smooth', block:'center'});
-        return;
+      if (!picked) {
+        e.preventDefault(); err.textContent = 'ご希望の日時をカレンダーから選んでください。'; err.hidden = false;
+        document.getElementById('cal').scrollIntoView({behavior:'smooth', block:'center'}); return;
       }
       err.textContent = '未入力の必須項目があります。ご確認ください。';
-      if (!form.checkValidity()) {
-        e.preventDefault(); err.hidden = false;
-        const first = form.querySelector(':invalid'); if (first) first.focus();
-        return;
+      if (!form.checkValidity()) { e.preventDefault(); err.hidden = false; const f = form.querySelector(':invalid'); if (f) f.focus(); return; }
+      const whenText = full(picked.day)+' '+picked.time+'〜'+endLabel(picked.time, curDur());
+      const note = dnote.value.trim();
+      if (!apiOk) { // Googleフォームへ(候補として)
+        dhidden.value = '第1希望: '+whenText + (note ? ' / 補足: '+note : '');
+        submitted = true; btn.disabled = true; btn.textContent = '送信中…'; return; // 通常のフォーム送信(iframe)
       }
-      submitted = true; btn.disabled = true; btn.textContent = '送信中…';
+      e.preventDefault(); btn.disabled = true; btn.textContent = '予約を確認しています…';
+      const st = slotStart(picked.day, picked.time);
+      const isoJst = st.getFullYear()+'-'+pad(st.getMonth()+1)+'-'+pad(st.getDate())+'T'+pad(st.getHours())+':'+pad(st.getMinutes())+':00+09:00';
+      const payload = {
+        name: form.querySelector('#f-name').value.trim(), email: form.querySelector('#f-email').value.trim(), tel: form.querySelector('#f-tel').value.trim(),
+        course: curCourse(), exp: (form.querySelector('input[name="entry.497837811"]:checked')||{}).value || '',
+        start: isoJst, note: [note, form.querySelector('#f-msg').value.trim()].filter(Boolean).join(' / '), website: ''
+      };
+      fetch(BOOKING_API_URL, { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
+        .then(r => r.json()).then(j => {
+          if (j.ok) {
+            doneText.innerHTML = '<b>'+(j.when || whenText)+'</b> で仮予約を承りました。ご入力のメールアドレスに受付メールをお送りしています。<br>講師が確認のうえ、1〜2日以内に確定のご連絡をします。お急ぎの場合は <a href="https://lin.ee/pqfaRtW" target="_blank" rel="noopener">LINE</a> からもどうぞ。';
+            form.hidden = true; done.hidden = false; done.scrollIntoView({behavior:'smooth', block:'center'});
+          } else {
+            const msg = { slot_taken: '申し訳ありません、その時間はたった今埋まってしまいました。別の時間をお選びください。', too_soon: '直前のお時間は受け付けできません。翌日以降をお選びください。',
+                          outside_hours: '受付時間外です。9:00〜21:00の間でお選びください。', bad_email: 'メールアドレスの形式をご確認ください。' }[j.error] || '送信に失敗しました。時間をおいて再度お試しいただくか、LINEからご連絡ください。';
+            err.textContent = msg; err.hidden = false; btn.disabled = false; btn.textContent = 'この内容で申し込む';
+            if (j.error === 'slot_taken') { picked = null; renderPicked(); fetch(BOOKING_API_URL).then(r=>r.json()).then(k=>{ if(k.ok){ busy = k.busy||[]; renderCal(); renderSlots(); } }); }
+          }
+        }).catch(() => { err.textContent = '通信に失敗しました。電波状況をご確認のうえ再度お試しください。'; err.hidden = false; btn.disabled = false; btn.textContent = 'この内容で申し込む'; });
     });
     iframe.addEventListener('load', function(){
       if (!submitted) return;
-      form.hidden = true; done.hidden = false;
-      done.scrollIntoView({behavior:'smooth', block:'center'});
+      form.hidden = true; done.hidden = false; done.scrollIntoView({behavior:'smooth', block:'center'});
     });
   })();
 </script>
