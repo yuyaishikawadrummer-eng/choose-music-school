@@ -29,7 +29,7 @@
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=8">
+<link rel="stylesheet" href="style.css?v=9">
 </head>
 <body>
 
@@ -255,16 +255,23 @@
       </fieldset>
       <fieldset class="field dt-field">
         <legend>ご希望の日時 <span class="req">必須</span></legend>
-        <p class="hint">年中無休・9:00〜21:00。第2希望もあると日程が決まりやすくなります。</p>
-        <div class="dt-row">
-          <span class="dt-label">第1希望</span>
-          <input type="date" id="f-date1" aria-label="第1希望の日付" required>
-          <select id="f-time1" aria-label="第1希望の時刻" required><option value="">時刻</option></select>
+        <p class="hint">カレンダーで日にちを選び、続けて時刻を選ぶと候補に追加されます(最大3つ)。年中無休・9:00〜21:00。</p>
+        <div class="cal" id="cal">
+          <div class="cal-head">
+            <button type="button" class="cal-nav" id="calPrev" aria-label="前の月">‹</button>
+            <span class="cal-title" id="calTitle"></span>
+            <button type="button" class="cal-nav" id="calNext" aria-label="次の月">›</button>
+          </div>
+          <div class="cal-grid cal-week"><span class="sun">日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span class="sat">土</span></div>
+          <div class="cal-grid" id="calDays" role="grid"></div>
         </div>
-        <div class="dt-row">
-          <span class="dt-label">第2希望</span>
-          <input type="date" id="f-date2" aria-label="第2希望の日付">
-          <select id="f-time2" aria-label="第2希望の時刻"><option value="">時刻</option></select>
+        <div class="slots" id="slots" hidden>
+          <p class="slots-title"><b id="slotsDate"></b> の希望時刻をタップ</p>
+          <div class="slot-grid" id="slotGrid"></div>
+        </div>
+        <div class="picked" id="picked">
+          <p class="picked-empty" id="pickedEmpty">まだ候補が選ばれていません</p>
+          <ol class="picked-list" id="pickedList"></ol>
         </div>
         <input type="text" id="f-datenote" class="dt-note" placeholder="補足があれば(例: 平日の夜なら何曜日でも可)" aria-label="日時の補足">
         <input type="hidden" name="entry.985320623" id="f-date">
@@ -330,31 +337,83 @@
           err = document.getElementById('formError'), btn = document.getElementById('applySubmit'),
           iframe = document.getElementById('apply_iframe');
     let submitted = false;
-    // 日時ピッカーの準備
-    const d1 = document.getElementById('f-date1'), d2 = document.getElementById('f-date2'),
-          t1 = document.getElementById('f-time1'), t2 = document.getElementById('f-time2'),
-          dnote = document.getElementById('f-datenote'), dhidden = document.getElementById('f-date');
-    const today = new Date(); const pad = n => String(n).padStart(2,'0');
-    const iso = d => d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
-    const maxD = new Date(today); maxD.setMonth(maxD.getMonth()+3);
-    [d1,d2].forEach(d => { d.min = iso(today); d.max = iso(maxD); });
-    for (let h = 9; h <= 20; h++) for (const m of ['00','30']) {
-      if (h === 20 && m === '30') break;
-      const v = h+':'+m;
-      [t1,t2].forEach(sel => { const o = document.createElement('option'); o.value = v; o.textContent = v+'〜'; sel.appendChild(o); });
+    // カレンダー式の日時ピッカー
+    const dnote = document.getElementById('f-datenote'), dhidden = document.getElementById('f-date');
+    const calTitle = document.getElementById('calTitle'), calDays = document.getElementById('calDays'),
+          slots = document.getElementById('slots'), slotsDate = document.getElementById('slotsDate'), slotGrid = document.getElementById('slotGrid'),
+          pickedList = document.getElementById('pickedList'), pickedEmpty = document.getElementById('pickedEmpty');
+    const WD = ['日','月','火','水','木','金','土'];
+    const today = new Date(); today.setHours(0,0,0,0);
+    const maxDay = new Date(today); maxDay.setMonth(maxDay.getMonth() + 3);
+    let view = new Date(today.getFullYear(), today.getMonth(), 1);
+    let selectedDay = null; const picked = [];
+    const label = d => (d.getMonth()+1)+'/'+d.getDate()+'('+WD[d.getDay()]+')';
+    const full  = d => d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate()+'('+WD[d.getDay()]+')';
+    const sameDay = (a,b) => a && b && a.getTime() === b.getTime();
+
+    function renderCal(){
+      calTitle.textContent = view.getFullYear()+'年 '+(view.getMonth()+1)+'月';
+      calDays.innerHTML = '';
+      const first = new Date(view), last = new Date(view.getFullYear(), view.getMonth()+1, 0);
+      for (let i = 0; i < first.getDay(); i++) calDays.appendChild(document.createElement('span'));
+      for (let d = 1; d <= last.getDate(); d++) {
+        const day = new Date(view.getFullYear(), view.getMonth(), d);
+        const b = document.createElement('button'); b.type = 'button'; b.textContent = d; b.className = 'cal-day';
+        if (day.getDay() === 0) b.classList.add('sun'); if (day.getDay() === 6) b.classList.add('sat');
+        if (sameDay(day, today)) b.classList.add('today');
+        if (day < today || day > maxDay) { b.disabled = true; }
+        if (sameDay(day, selectedDay)) b.classList.add('selected');
+        if (picked.some(p => sameDay(p.day, day))) b.classList.add('has');
+        b.addEventListener('click', () => { selectedDay = day; renderCal(); renderSlots(); });
+        calDays.appendChild(b);
+      }
+      document.getElementById('calPrev').disabled = view <= new Date(today.getFullYear(), today.getMonth(), 1);
+      document.getElementById('calNext').disabled = view >= new Date(maxDay.getFullYear(), maxDay.getMonth(), 1);
     }
-    const fmt = (dv, tv) => {
-      if (!dv || !tv) return '';
-      const d = new Date(dv+'T00:00:00'); const w = ['日','月','火','水','木','金','土'][d.getDay()];
-      return d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate()+'('+w+') '+tv+'〜';
-    };
+    function renderSlots(){
+      if (!selectedDay) { slots.hidden = true; return; }
+      slots.hidden = false; slotsDate.textContent = label(selectedDay); slotGrid.innerHTML = '';
+      for (let h = 9; h <= 20; h++) for (const m of ['00','30']) {
+        if (h === 20 && m === '30') break;
+        const t = h+':'+m, b = document.createElement('button'); b.type = 'button'; b.className = 'slot'; b.textContent = t;
+        if (picked.some(p => sameDay(p.day, selectedDay) && p.time === t)) b.classList.add('on');
+        b.addEventListener('click', () => togglePick(selectedDay, t));
+        slotGrid.appendChild(b);
+      }
+      slots.scrollIntoView({behavior:'smooth', block:'nearest'});
+    }
+    function togglePick(day, time){
+      const i = picked.findIndex(p => sameDay(p.day, day) && p.time === time);
+      if (i >= 0) picked.splice(i, 1);
+      else { if (picked.length >= 3) { alert('候補は3つまで選べます。不要な候補を × で削除してください。'); return; } picked.push({day, time}); }
+      renderPicked(); renderCal(); renderSlots();
+    }
+    function renderPicked(){
+      pickedList.innerHTML = ''; pickedEmpty.hidden = picked.length > 0;
+      picked.forEach((p, i) => {
+        const li = document.createElement('li');
+        li.innerHTML = '<span class="rank">第'+(i+1)+'希望</span><span class="when">'+label(p.day)+' '+p.time+'〜</span>';
+        const x = document.createElement('button'); x.type = 'button'; x.className = 'rm'; x.setAttribute('aria-label','この候補を削除'); x.textContent = '×';
+        x.addEventListener('click', () => { picked.splice(i,1); renderPicked(); renderCal(); renderSlots(); });
+        li.appendChild(x); pickedList.appendChild(li);
+      });
+    }
+    document.getElementById('calPrev').addEventListener('click', () => { view = new Date(view.getFullYear(), view.getMonth()-1, 1); renderCal(); });
+    document.getElementById('calNext').addEventListener('click', () => { view = new Date(view.getFullYear(), view.getMonth()+1, 1); renderCal(); });
+    renderCal(); renderPicked();
+
     form.addEventListener('submit', function(e){
       err.hidden = true;
       if (form.querySelector('input[name="website"]').value) { e.preventDefault(); return; } // スパム対策
-      const parts = ['第1希望: '+fmt(d1.value, t1.value)];
-      if (d2.value && t2.value) parts.push('第2希望: '+fmt(d2.value, t2.value));
+      const parts = picked.map((p, i) => '第'+(i+1)+'希望: '+full(p.day)+' '+p.time+'〜');
       if (dnote.value.trim()) parts.push('補足: '+dnote.value.trim());
       dhidden.value = parts.join(' / ');
+      if (picked.length === 0) {
+        e.preventDefault(); err.textContent = 'ご希望の日時をカレンダーから1つ以上選んでください。'; err.hidden = false;
+        document.getElementById('cal').scrollIntoView({behavior:'smooth', block:'center'});
+        return;
+      }
+      err.textContent = '未入力の必須項目があります。ご確認ください。';
       if (!form.checkValidity()) {
         e.preventDefault(); err.hidden = false;
         const first = form.querySelector(':invalid'); if (first) first.focus();

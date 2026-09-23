@@ -255,18 +255,33 @@ section.alt { background: var(--cream); }
 .apply-done h3 { font-size: 1.3rem; }
 .apply-done p { color: var(--ink-soft); margin: 0; }
 
-/* 日時ピッカー */
+/* カレンダー式日時ピッカー */
 .dt-field .hint { margin: -2px 0 12px; font-size: .85rem; color: var(--ink-soft); }
-.dt-row { display: grid; grid-template-columns: 72px 1fr 120px; gap: 10px; align-items: center; margin-bottom: 10px; }
-.dt-label { font-weight: 700; font-size: .9rem; color: var(--orange-dark); }
-.apply-form input[type=date], .apply-form select {
-  width: 100%; font: inherit; padding: 11px 12px; border: 1.5px solid #ddd2c6; border-radius: 10px; background: #fffdfa; color: var(--ink); min-height: 46px;
-  -webkit-appearance: none; appearance: none;
-}
-.apply-form select { background-image: linear-gradient(45deg, transparent 50%, var(--orange) 50%), linear-gradient(135deg, var(--orange) 50%, transparent 50%); background-position: calc(100% - 18px) 20px, calc(100% - 13px) 20px; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 32px; }
-.apply-form input[type=date]:focus, .apply-form select:focus { outline: none; border-color: var(--orange); box-shadow: 0 0 0 3px rgba(242,130,58,.18); }
-.apply-form .dt-note { margin-top: 4px; }
-@media (max-width: 480px) {
-  .dt-row { grid-template-columns: 1fr 1fr; }
-  .dt-label { grid-column: 1 / -1; margin-bottom: -4px; }
-}
+.cal { border: 1.5px solid #ddd2c6; border-radius: 12px; padding: 12px; background: #fffdfa; }
+.cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.cal-title { font-weight: 700; }
+.cal-nav { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: #fff; font-size: 1.3rem; line-height: 1; cursor: pointer; color: var(--orange-dark); }
+.cal-nav:disabled { opacity: .3; cursor: default; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal-week span { text-align: center; font-size: .75rem; color: var(--ink-soft); font-weight: 700; padding: 4px 0; }
+.cal-week .sun, .cal-day.sun { color: #d64545; } .cal-week .sat, .cal-day.sat { color: #2f6fd6; }
+.cal-day { aspect-ratio: 1; border: 0; border-radius: 10px; background: transparent; font: inherit; font-weight: 700; cursor: pointer; position: relative; color: var(--ink); }
+.cal-day:hover:not(:disabled) { background: #fff0e3; }
+.cal-day:disabled { color: #ccc !important; cursor: default; }
+.cal-day.today::after { content: ""; position: absolute; left: 50%; bottom: 5px; width: 5px; height: 5px; border-radius: 50%; background: var(--orange); transform: translateX(-50%); }
+.cal-day.has { box-shadow: inset 0 0 0 2px var(--orange); }
+.cal-day.selected { background: var(--orange) !important; color: #fff !important; }
+.slots { margin-top: 12px; border: 1.5px solid var(--orange); border-radius: 12px; padding: 12px; background: #fff7f0; }
+.slots-title { margin: 0 0 8px; font-size: .9rem; color: var(--ink-soft); } .slots-title b { color: var(--orange-dark); font-size: 1rem; }
+.slot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 6px; }
+.slot { border: 1.5px solid #ddd2c6; background: #fff; border-radius: 8px; padding: 8px 0; font: inherit; font-weight: 700; cursor: pointer; }
+.slot:hover { border-color: var(--orange); } .slot.on { background: var(--orange); border-color: var(--orange); color: #fff; }
+.picked { margin-top: 12px; }
+.picked-empty { margin: 0; font-size: .9rem; color: #b98d6d; background: #fff6ec; border: 1px dashed #f0c8a8; border-radius: 10px; padding: 10px 14px; }
+.picked-list { list-style: none; margin: 0; padding: 0; }
+.picked-list li { display: flex; align-items: center; gap: 10px; background: #fff3e8; border: 1.5px solid var(--orange); border-radius: 10px; padding: 8px 8px 8px 12px; margin-bottom: 6px; }
+.picked-list .rank { font-size: .75rem; font-weight: 700; color: #fff; background: var(--orange); border-radius: 999px; padding: 2px 10px; white-space: nowrap; }
+.picked-list .when { font-weight: 700; flex: 1; }
+.picked-list .rm { border: 0; background: #fff; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 1.1rem; color: var(--ink-soft); }
+.apply-form .dt-note { margin-top: 10px; }
+@media (max-width: 480px) { .cal { padding: 8px; } .cal-grid { gap: 2px; } .cal-day { border-radius: 8px; } }
