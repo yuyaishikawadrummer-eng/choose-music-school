@@ -294,3 +294,6 @@ section.alt { background: var(--cream); }
 .api-status { margin: -4px 0 10px; font-size: .85rem; padding: 8px 12px; border-radius: 8px; }
 .api-status.loading { background: #f3f3f3; color: var(--ink-soft); }
 .api-status.warn { background: #fff4e5; color: #8a5a00; border: 1px solid #ffd699; }
+.cal.is-loading { position: relative; pointer-events: none; }
+.cal.is-loading .cal-grid, .cal.is-loading .cal-head, .cal.is-loading .cal-legend { opacity: .35; filter: grayscale(1); }
+.cal.is-loading::after { content: "空き状況を読み込み中…"; position: absolute; inset: 0; display: grid; place-items: center; font-weight: 700; color: var(--orange-dark); }

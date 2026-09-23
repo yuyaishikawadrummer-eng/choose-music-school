@@ -29,7 +29,7 @@
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=10">
+<link rel="stylesheet" href="style.css?v=11">
 </head>
 <body>
 
@@ -424,15 +424,15 @@
     // ---- 空き状況の取得
     function setStatus(msg, kind){ apiStatus.hidden = !msg; apiStatus.textContent = msg || ''; apiStatus.className = 'api-status ' + (kind || ''); }
     if (BOOKING_API_URL) {
-      setStatus('空き状況を読み込んでいます…', 'loading');
+      setStatus('空き状況を読み込んでいます…(数秒かかることがあります)', 'loading'); document.getElementById('cal').classList.add('is-loading');
       fetch(BOOKING_API_URL, { method: 'GET', redirect: 'follow' }).then(r => r.json()).then(j => {
         if (!j.ok) throw new Error(j.error || 'ng');
         busy = j.busy || []; Object.assign(cfg, j.config || {}); if (j.config && j.config.durations) Object.assign(DUR, j.config.durations);
         maxDay = new Date(today); maxDay.setDate(maxDay.getDate() + cfg.rangeDays);
-        apiOk = true; setStatus('', ''); renderCal(); renderSlots(); renderPicked();
+        apiOk = true; setStatus('', ''); document.getElementById('cal').classList.remove('is-loading'); renderCal(); renderSlots(); renderPicked();
         document.getElementById('dtHint').textContent = '講師のカレンダーと連動した空き枠です。日にちを選び、開始時刻をタップしてください(前日まで受付・9:00〜21:00)。';
       }).catch(() => {
-        apiOk = false; setStatus('空き状況を取得できませんでした。ご希望の日時を候補として送信いただければ、折り返し調整します。', 'warn'); renderCal(); renderSlots();
+        apiOk = false; setStatus('空き状況を取得できませんでした。ご希望の日時を候補として送信いただければ、折り返し調整します。', 'warn'); document.getElementById('cal').classList.remove('is-loading'); renderCal(); renderSlots();
       });
     }
 
